@@ -25,6 +25,30 @@ class VideoWidget(QWidget):
         self.SetupUI()
 
     def SetupUI(self):
+        self.setStyleSheet(
+            "QPushButton {"
+            "background-color: #4CAF50;"
+            "border: none;"
+            "color: white;"
+            "padding: 2px 4px;"
+            "text-align: center;"
+            "text-decoration: none;"
+            "display: inline-block;"
+            "font-size: 16px;"
+            "margin: 1px 1px;"
+            "cursor: pointer;"
+            "border-radius: 4px;"
+            "box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);"
+            "}"
+
+            "QPushButton:hover {"
+            "background-color: #45a049;"
+            "}"
+
+            "QPushButton:pressed {"
+            "background-color: #367c39;"
+            "box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);"
+            "}")
         self.Screen = QLabel(self)
         self.Screen.setFixedSize(320, 240)
         self.Screen.setStyleSheet('border-width: 6px;border-style: solid;\
@@ -106,11 +130,12 @@ class VideoWidget(QWidget):
                                       'rtph264depay ! decodebin ! videoconvert ! appsink sync=true', cv2.CAP_GSTREAMER)
         while self.is_trans:
             ret, self.frame = self.video.read()
-            frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
-            image_height, image_width, image_depth = frame.shape
-            image = QImage(frame.data, image_width, image_height,  # 创建QImage格式的图像，并读入图像信息
-                           QImage.Format_RGB888)
-            self.Update_Image.emit(image)
+            if self.frame is not None:
+                frame = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
+                image_height, image_width, image_depth = frame.shape
+                image = QImage(frame.data, image_width, image_height,  # 创建QImage格式的图像，并读入图像信息
+                               QImage.Format_RGB888)
+                self.Update_Image.emit(image)
 
         self.video.release()
 
@@ -122,7 +147,8 @@ class VideoWidget(QWidget):
             init_rect[1] /= 240
             init_rect[2] /= 320
             init_rect[3] /= 240
-            self.Order.emit(str((1 << 2, init_rect)))
+            if not (init_rect[2] == 0 or init_rect[3] == 0):
+                self.Order.emit(str((1 << 2, init_rect)))
             if init_rect:
                 self.open_track.setText("关闭跟踪")
                 self.is_track = True

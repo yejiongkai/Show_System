@@ -407,10 +407,11 @@ class QMoveWidget(QWidget):
                 self.m_pressIndex = i
                 if event.button() == Qt.LeftButton:
                     self.m_isMousePressed_left = True
-                if event.button() == Qt.RightButton:
-                    self.m_isMousePressed_right = True
                 self.update()
                 break
+
+        if event.button() == Qt.RightButton:
+            self.m_isMousePressed_right = True
 
     def mouseReleaseEvent(self, event):
         if self.m_isMousePressed_left:
@@ -507,7 +508,7 @@ class QMoveWidget(QWidget):
             return QColor(0x6a, 0x6a, 0xff)
 
     def getLineNum(self, ping):
-        return ping // (10 / 632 * self.width()) if ping < 150 / 632 * self.width() else 150 / 632 * self.width()
+        return ping // 10 if ping < 150 else 15
 
     def getSignalPixmap(self, color, linenum):
         pixmap = QPixmap(self.m_radius, self.m_radius/2)
