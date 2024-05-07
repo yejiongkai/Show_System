@@ -9,6 +9,7 @@ from Module.VideoWidget import VideoWidget
 from Module.QWave import Wave
 from Module.QShow import Show
 import os
+from datetime import datetime
 
 root = os.path.curdir
 
@@ -111,7 +112,7 @@ class CenterWidget(QFrame):
             data = self.socket.readLine(1024).decode('utf-8')[:-1]
             print(data)
             if data:
-                self.Servo_Control.Recv.append('Receive: {}'.format(data))
+                self.Servo_Control.Recv.append('{}:{}'.format(datetime.now().strftime("%m-%d %H:%M:%S"), data))
                 try:
                     data = eval(data)
                 except Exception as e:

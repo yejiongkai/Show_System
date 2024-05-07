@@ -30,6 +30,8 @@ QCheckBox::indicator:unchecked {
 	border-color:rgb(246, 134, 86);
   	background-color:rgb(255,255,255);
 }
+
+
 QColorDialog {
 	background-color:#f0f0f0;
 }

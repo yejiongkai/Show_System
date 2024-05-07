@@ -20,7 +20,7 @@ class Wave(QtWidgets.QDialog):
         self.A, self.k = 0, 0
         # 几个QWidgets
         self.figure = Figure()
-        self.ax = self.figure.add_axes([0.1, 0.1, 0.8, 0.8])
+        self.ax = self.figure.add_axes([0, 0, 1, 1])
         self.canvas = FigureCanvas(self.figure)
 
         layout = QtWidgets.QVBoxLayout()
@@ -33,11 +33,12 @@ class Wave(QtWidgets.QDialog):
     def Plot(self):
         fun = lambda a, k, x, t: (0.5 * (-k) * np.power(x, 2)) * np.sin(t * a)
         while not self.Close:
+            self.ax.clear()
             if self.k == 0:
                 for t in np.linspace(0, (np.pi * 2 / self.A) if self.A != 0 else 1, (100 // self.A) if self.A != 0 else 1):
                     x = np.linspace(0, np.pi * 20, 50)
                     # p_x = np.linspace(0, np.pi * 20, 4)
-                    self.ax.clear()
+
                     self.ax.plot(x, fun(self.A, 5, x, t))
                     # self.ax.plot(p_x, fun(self.A, 5, p_x, t), linestyle='-')
                     self.ax.set_ylim(-18000, 18000)
@@ -53,7 +54,6 @@ class Wave(QtWidgets.QDialog):
                 for t in np.linspace(0, (np.pi / self.A) if self.A != 0 else 1, (50//self.A) if self.A != 0 else 1):
                     x = np.linspace(0, np.pi * 20, 50)
                     # p_x = np.linspace(0, np.pi * 20, 4)
-                    self.ax.clear()
                     self.ax.plot(x, fun(self.A, self.k, x, t))
                     # self.ax.plot(p_x, fun(self.A, self.k, p_x, t), linestyle='--')
                     self.ax.set_ylim(-18000, 18000)

@@ -1,11 +1,13 @@
 import numpy as np
 import cv2
+from datetime import datetime
 
 
+img = np.ones((400, 400, 6), dtype='uint8')*255
 
-img = np.ones((6, 100, 100))
+img = cv2.copyMakeBorder(img, 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=(0, 0, 0))
 
-print(np.pad(img, ((0, 0), (2, 2), (2, 2)), mode='constant', constant_values=((0, 0), (114, 114), (114, 114))))
-print(np.pad(img, ((0, 0), (2, 2), (2, 2)), mode='constant', constant_values=((0, 0), (114, 114), (114, 114))).transpose((2, 1, 0)).shape)
+cv2.imshow("img1", img[:, :, :3])
+cv2.imshow("img2", img[:, :, 3:])
 
-# print(cv2.copyMakeBorder(img, 2, 2, 2, 2, cv2.BORDER_CONSTANT, value=(114, 114, 144, 114, 114, 114)).shape)
+cv2.waitKey(0)
