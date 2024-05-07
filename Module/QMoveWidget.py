@@ -136,10 +136,10 @@ class QMoveWidget(QWidget):
             painterPath = QPainterPath()
             self.m_textPathList.append(painterPath)
 
-        self.mStrUp = "前"
-        self.mStrLeft = "左"
+        self.mStrUp = "↑"
+        self.mStrLeft = "←"
         self.mStrDown = "切换"
-        self.mStrRight = "右"
+        self.mStrRight = "→"
         self.update()
 
     def initButton(self):
@@ -208,10 +208,10 @@ class QMoveWidget(QWidget):
             painterPath = QPainterPath()
             self.m_textPathList.append(painterPath)
 
-        self.mStrUp = "前"
-        self.mStrLeft = "左"
+        self.mStrUp = "↑"
+        self.mStrLeft = "←"
         self.mStrDown = "切换"
-        self.mStrRight = "右"
+        self.mStrRight = "→"
 
     def Send(self):
         if self.QUADRANT_RIGHT in self.mCurWorkRegion:
@@ -310,7 +310,6 @@ class QMoveWidget(QWidget):
         if self.mAxesVertical:
             painter.drawText(QPoint(-60, -40), self.mStrUp)
             painter.drawText(QPoint(30, -40), self.mStrLeft)
-
             painter.drawText(QPoint(-80, 40), self.mStrDown)
             painter.drawText(QPoint(20, 40), self.mStrRight)
         else:
@@ -508,7 +507,7 @@ class QMoveWidget(QWidget):
             return QColor(0x6a, 0x6a, 0xff)
 
     def getLineNum(self, ping):
-        return ping // 10 if ping < 150 else 15
+        return ping // (10 / 632 * self.width()) if ping < (150 / 632 * self.width()) else 15
 
     def getSignalPixmap(self, color, linenum):
         pixmap = QPixmap(self.m_radius, self.m_radius/2)
@@ -534,6 +533,19 @@ class QMoveWidget(QWidget):
         self.mDegreePixmap_x = QPixmap(0, 0)
         self.mDegreePixmap_y = QPixmap(0, 0)
         self.Degree_x, self.Degree_y = 0, 0
+        self.m_arcPathList = []
+        self.m_textPathList = []
+        self.addArc(1, 0, 45, 90, self.mSectorColor)
+        self.addArc(0, 1, 135, 90, self.mSectorColor)
+        self.addArc(-1, 0, 225, 90, self.mSectorColor)
+        self.addArc(0, -1, 315, 90, self.mSectorColor)
+        self.centerRoundPath = QPainterPath()
+        self.centerRoundPath.addEllipse(QPoint(0, 0), self.m_radius - self.m_arcLength + 2,
+                                        self.m_radius - self.m_arcLength + 2)
+        self.m_arcPathList.append(self.centerRoundPath)
+        for i in range(len(self.m_arcPathList)):
+            painterPath = QPainterPath()
+            self.m_textPathList.append(painterPath)
         self.update()
 
 

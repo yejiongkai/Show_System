@@ -181,23 +181,48 @@ class Servo_Control(QtWidgets.QDialog):
 
         self.save_pb = QtWidgets.QPushButton("保存")
         self.save_pb.clicked.connect(self.Save)
-        self.save_pb.setFixedSize(60, 30)
+        self.save_pb.setFixedHeight(30)
         self.load_pb = QtWidgets.QPushButton("加载")
         self.load_pb.clicked.connect(self.Load)
-        self.load_pb.setFixedSize(60, 30)
+        self.load_pb.setFixedHeight(30)
 
         self.send_pushbutton = QtWidgets.QPushButton("发送")
         self.send_pushbutton.setEnabled(False)
         self.send_pushbutton.clicked.connect(self.Send)
-        self.send_pushbutton.setFixedSize(60, 30)
+        self.send_pushbutton.setFixedHeight(30)
 
         self.Connect = QtWidgets.QPushButton('连接', self)
-        self.Connect.setFixedSize(60, 30)
+        self.Connect.setFixedHeight(30)
         self.Connect.clicked.connect(self.Socket_Init)
 
         self.real_time = QtWidgets.QCheckBox(self)
-        self.real_time.setFixedSize(60, 30)
+        self.real_time.setFixedHeight(30)
         self.real_time.setText("实时")
+
+        self.reset32 = QtWidgets.QPushButton("STM32重启", self)
+        self.reset32.setFixedHeight(30)
+        self.reset32.clicked.connect(self.Reset_STM32)
+
+        self.chooseAll = QtWidgets.QCheckBox(self)
+        self.chooseAll.setFixedHeight(30)
+        self.chooseAll.setText("全选")
+        self.chooseAll.clicked.connect(self.ChooseAll)
+
+        self.chooseShoulder = QtWidgets.QCheckBox(self)
+        self.chooseShoulder.setFixedHeight(30)
+        self.chooseShoulder.setText("肩部")
+        self.chooseShoulder.clicked.connect(self.ChooseShoulder)
+
+        self.chooseWaist = QtWidgets.QCheckBox(self)
+        self.chooseWaist.setFixedHeight(30)
+        self.chooseWaist.setText("腰部")
+        self.chooseWaist.clicked.connect(self.ChooseWaist)
+
+        self.gesture_control = QtWidgets.QCheckBox(self)
+        self.gesture_control.setFixedHeight(30)
+        self.gesture_control.setText("姿态控制")
+        self.gesture_control.setChecked(False)
+        self.gesture_control.clicked.connect(self.Gesture_Control)
 
         # 设置布局
         servo_layouts = [QtWidgets.QHBoxLayout(), QtWidgets.QHBoxLayout(), QtWidgets.QHBoxLayout()]
@@ -213,15 +238,24 @@ class Servo_Control(QtWidgets.QDialog):
         h2 = QtWidgets.QHBoxLayout()
         # h2.addWidget(self.time_scale)
         h2.addWidget(self.real_time)
+        h2.addWidget(self.chooseAll)
+        h2.addWidget(self.chooseShoulder)
+        h2.addWidget(self.chooseWaist)
+        h2.addWidget(self.gesture_control)
         h2.addWidget(self.send_pushbutton)
         h2.addWidget(self.load_pb)
         h2.addWidget(self.save_pb)
-        h2.addWidget(self.Connect)
-        h2.addWidget(self.combobox, 8)
+
+        h2.addWidget(self.reset32)
+
+        h3 = QtWidgets.QHBoxLayout()
+        h3.addWidget(self.Connect)
+        h3.addWidget(self.combobox, 8)
 
         layout.addWidget(self.Recv, 6)
         layout.addLayout(servo_v_layout, 6)
         layout.addLayout(h2, 1)
+        layout.addLayout(h3, 1)
         self.setLayout(layout)
         self.clearFocus()
 
@@ -281,6 +315,41 @@ class Servo_Control(QtWidgets.QDialog):
                     self.servos[self.servo_index.index(i)].use_time_slider.setValue((int(list_bytes[4 + i*5], 16) << 8) +
                                                          (int(list_bytes[5 + i*5], 16)))
             # self.signal_changed()
+
+    def Reset_STM32(self):
+        self.Socket_Send.emit(str((1 << 7, True)))
+
+    def ChooseAll(self, event):
+        if self.chooseAll.isChecked():
+            for i in range(9):
+                self.servos[i].enable.setChecked(True)
+        else:
+            for i in range(9):
+                self.servos[i].enable.setChecked(False)
+
+    def ChooseShoulder(self):
+        if self.chooseShoulder.isChecked():
+            for i in range(9):
+                self.servos[i].enable.setChecked(False)
+            self.servos[3].enable.setChecked(True)
+            self.servos[6].enable.setChecked(True)
+        else:
+            self.servos[3].enable.setChecked(False)
+            self.servos[6].enable.setChecked(False)
+
+    def ChooseWaist(self):
+        if self.chooseWaist.isChecked():
+            for i in range(9):
+                self.servos[i].enable.setChecked(False)
+            self.servos[0].enable.setChecked(True)
+        else:
+            self.servos[0].enable.setChecked(False)
+
+    def Gesture_Control(self):
+        if self.gesture_control.isChecked():
+            self.Socket_Send.emit(str((1 << 6, True)))
+        else:
+            self.Socket_Send.emit(str((1 << 6, False)))
 
     def signal_changed(self):
         if self.sender() and type(self.sender().parent()) == Servo:

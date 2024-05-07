@@ -1,6 +1,7 @@
 import sys
-from PyQt5.QtWidgets import QListWidget, QStackedWidget, QListWidgetItem, QHBoxLayout, QApplication, QFrame
-from PyQt5.QtCore import QSize, Qt
+from PyQt5.QtWidgets import QListWidget, QStackedWidget, QListWidgetItem, QHBoxLayout, QApplication, QFrame, QMenu
+from PyQt5.QtCore import QSize, Qt, QPoint
+from PyQt5.QtGui import QCursor
 from Module.Route import Drawer
 from Module.Servo_Control import Servo_Control
 from Module.QMoveWidget import QMoveWidget
@@ -53,11 +54,14 @@ class CenterWidget(QFrame):
         self.left_widget.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # 隐藏滚动条
         self.left_widget.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
-        list_str = ['网络连接', '运行控制', '规划路径']
+        list_str = ['网络连接', '运行控制', '规划路径', '轨迹仿真']
 
         self.Wave = Wave(self)
 
         self.Show = Show(self)
+        self.Show.setContextMenuPolicy(3)
+        self.Show.customContextMenuRequested[QPoint].connect(lambda: self.showContextMenu(self.Show))
+        self.Show.contextMenu = QMenu()
 
         self.Drawer = Drawer(self)
         self.Drawer.Order.connect(self.Socket_Send)
@@ -73,7 +77,7 @@ class CenterWidget(QFrame):
         self.Servo_Control.Socket_Disconnect.connect(self.Socket_Disconnect)
         self.Servo_Control.Socket_Send.connect(self.Socket_Send)
 
-        list_module = [self.Servo_Control, self.Move, self.Drawer]
+        list_module = [self.Servo_Control, self.Move, self.Drawer, self.Show]
 
         for i in range(len(list_str)):
             self.item = QListWidgetItem(list_str[i], self.left_widget)  # 左侧选项的添加
@@ -81,6 +85,13 @@ class CenterWidget(QFrame):
             self.item.setTextAlignment(Qt.AlignCenter)  # 居中显示
             self.right_widget.addWidget(list_module[i])
         self.left_widget.setCurrentRow(0)
+
+    def showContextMenu(self, cls):
+        '''''
+        右键点击显示控件右键菜单
+        '''
+        # 菜单定位
+        cls.contextMenu.exec_(QCursor.pos())
 
     def Socket_Connect(self):
         self.socket = self.Servo_Control.Socket
@@ -97,9 +108,10 @@ class CenterWidget(QFrame):
 
     def Socket_Recv(self):
         if self.socket.state() == 3:
-            data = self.socket.read(1024)[:-1].decode('utf-8').strip('\n')
+            data = self.socket.readLine(1024).decode('utf-8')[:-1]
+            print(data)
             if data:
-                self.Socket.TextEdit.append('Receive: {}'.format(data))
+                self.Servo_Control.Recv.append('Receive: {}'.format(data))
                 try:
                     data = eval(data)
                 except Exception as e:

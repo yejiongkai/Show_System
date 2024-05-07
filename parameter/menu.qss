@@ -4,8 +4,9 @@ QMenu {
 	border-radius:3px;
 	padding:5px;
 	margin:5px;
+	font-size:16px
 }
-QMenu::item:text { 
+QMenu::item:text {
 	padding-left:10px;
 	padding-right:10px;
 }

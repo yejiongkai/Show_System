@@ -46,33 +46,24 @@ class MainWindow(QMainWindow):
         self.setStyleSheet('font-size: 20px;')
         self.resize(1000, 700)
         self.setGeometry(400, 400, 1000, 700)
-        show_item = QDockWidget(self)
-        show_item.setContextMenuPolicy(3)
-        show_item.customContextMenuRequested[QPoint].connect(lambda: self.showContextMenu(show_item))
-        menu = QMenu(self)
-        self.SetMenuStyle(menu)
-        show_item.contextMenu = menu
-        #
+
         wave_item = QDockWidget(self)
         wave_item.setMinimumSize(400, 400)
 
         video_item = QDockWidget(self)
 
-        clear = QAction('还原', show_item)
+        clear = QAction('还原', self.Show)
         clear.triggered.connect(self.Show_Clear)
-        alpha = QAction('设置alpha(角速度分辨率)', show_item)
+        alpha = QAction('设置alpha(角速度分辨率)', self.Show)
         alpha.triggered.connect(self.Change_Alpha)
-        beta = QAction('设置beta(速度系数)', show_item)
+        beta = QAction('设置beta(速度系数)', self.Show)
         beta.triggered.connect(self.Change_Beta)
 
-        show_item.contextMenu.addActions([clear, alpha, beta])
+        self.Show.contextMenu.addActions([clear, alpha, beta])
+        self.SetMenuStyle(self.Show.contextMenu)
         layout = QHBoxLayout()
-        show_item.setWidget(self.Show)
         bar = QToolBar()
         bar.setStyleSheet('background-color:rgba(0, 225, 225, 12)')
-        show_item.setTitleBarWidget(bar)
-        show_item.setFeatures(
-            QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
 
         wave_item.setStyleSheet('font-size: 12px;font-family: "宋体";background-color:rgba(255, 255, 255, 230)')
         wave_item.setWidget(self.Wave)
@@ -90,16 +81,13 @@ class MainWindow(QMainWindow):
         video_item.setFeatures(
             QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
 
-        show_item.setFloating(False)
-        show_item.setMinimumSize(200, 200)
-
         wave_item.setFloating(False)
         wave_item.setMinimumSize(200, 200)
 
         video_item.setFloating(False)
 
         self.setCentralWidget(self.Control)
-        self.addDockWidget(Qt.RightDockWidgetArea, show_item)
+        # self.addDockWidget(Qt.RightDockWidgetArea, show_item)
         self.addDockWidget(Qt.RightDockWidgetArea, wave_item)
         self.addDockWidget(Qt.RightDockWidgetArea, video_item)
 
