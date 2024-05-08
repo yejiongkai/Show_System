@@ -8,6 +8,7 @@ from Module.QMoveWidget import QMoveWidget
 from Module.VideoWidget import VideoWidget
 from Module.QWave import Wave
 from Module.QShow import Show
+from Module.Sensor_Show import Sensor
 import os
 from datetime import datetime
 
@@ -58,6 +59,8 @@ class CenterWidget(QFrame):
         list_str = ['网络连接', '运行控制', '规划路径', '轨迹仿真']
 
         self.Wave = Wave(self)
+
+        self.Sensor = Sensor(self)
 
         self.Show = Show(self)
         self.Show.setContextMenuPolicy(3)
@@ -112,19 +115,15 @@ class CenterWidget(QFrame):
             data = self.socket.readLine(1024).decode('utf-8')[:-1]
             print(data)
             if data:
-                self.Servo_Control.Recv.append('{}:{}'.format(datetime.now().strftime("%m-%d %H:%M:%S"), data))
+                if data[0] == "&":
+                    value = data[1:]
+                    self.Sensor.Update(value)
+                else:
+                    self.Servo_Control.Recv.append('{}:{}'.format(datetime.now().strftime("%m-%d %H:%M:%S"), data))
                 try:
                     data = eval(data)
                 except Exception as e:
                     return
-                if 'Order' in data:
-                    return
-                if 'position' in data:
-                    try:
-                        _, arg = eval(data)
-                    except SyntaxError as e:
-                        return
-                    self.Track.position.emit(arg)
                 if isinstance(data[1], tuple) and len(data[1]) == 3:
                     # self.num += 1
                     self.Show.A, self.Show.k, _ = data[1]

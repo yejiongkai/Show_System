@@ -35,6 +35,7 @@ class MainWindow(QMainWindow):
         self.Control = CenterWidget()
         self.Show = self.Control.Show
         self.Wave = self.Control.Wave
+        self.Sensor = self.Control.Sensor
         self.VideoModule = self.Control.VideoModule
         self.tray = TrayModel(self)
         self.threads = [self.VideoModule.trans_thread, self.Wave.thread, self.Show.thread]
@@ -44,13 +45,15 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         self.setWindowIcon(QIcon('./win.ico'))
         self.setStyleSheet('font-size: 20px;')
-        self.resize(1000, 700)
-        self.setGeometry(400, 400, 1000, 700)
+        # self.resize(1000, 700)
+        self.setGeometry(400, 100, 1000, 900)
 
         wave_item = QDockWidget(self)
         wave_item.setMinimumSize(400, 400)
 
         video_item = QDockWidget(self)
+
+        sensor_item = QDockWidget(self)
 
         clear = QAction('还原', self.Show)
         clear.triggered.connect(self.Show_Clear)
@@ -72,6 +75,8 @@ class MainWindow(QMainWindow):
         wave_item.setTitleBarWidget(w_bar)
         wave_item.setFeatures(
             QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
+        wave_item.setFloating(False)
+        wave_item.setMinimumSize(200, 200)
 
         # video_item.setStyleSheet('font-size: 12px;font-family: "宋体";background-color:rgba(255, 255, 255, 230)')
         video_item.setWidget(self.VideoModule)
@@ -81,13 +86,18 @@ class MainWindow(QMainWindow):
         video_item.setFeatures(
             QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
 
-        wave_item.setFloating(False)
-        wave_item.setMinimumSize(200, 200)
-
         video_item.setFloating(False)
 
+        sensor_item.setWidget(self.Sensor)
+        s_bar = QToolBar()
+        s_bar.setStyleSheet('background-color:rgba(0, 225, 225, 12)')
+        sensor_item.setTitleBarWidget(s_bar)
+        sensor_item.setFeatures(
+            QDockWidget.DockWidgetClosable | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetMovable)
+        sensor_item.setFloating(False)
+
         self.setCentralWidget(self.Control)
-        # self.addDockWidget(Qt.RightDockWidgetArea, show_item)
+        self.addDockWidget(Qt.RightDockWidgetArea, sensor_item)
         self.addDockWidget(Qt.RightDockWidgetArea, wave_item)
         self.addDockWidget(Qt.RightDockWidgetArea, video_item)
 
