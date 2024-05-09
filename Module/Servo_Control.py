@@ -293,6 +293,7 @@ class Servo_Control(QtWidgets.QDialog):
         QtWidgets.QMessageBox.information(self, '提示', '服务器断开')
 
     def Send(self):
+        print(len(" ".join(self.get_SendMessageFormat())))
         self.Socket_Send.emit(str((1 << 0, " ".join(self.get_SendMessageFormat()))))
 
     def Save(self):
@@ -367,14 +368,10 @@ class Servo_Control(QtWidgets.QDialog):
                 )
 
         if self.real_time.isChecked():
-            if self.send_num == 10:
-                self.Send()
-                self.send_num = 0
-            else:
-                self.send_num += 1
+            self.Send()
 
     def get_SendMessageFormat(self):
-        list_bytes = [format_hex(0x01)]
+        list_bytes = [format_hex(0x01), "00", "00", "00", "00"]
         for i in range(9):
             enable = 1 if self.servos[self.servo_index.index(i)].enable.isChecked() else 0
             ratio = int(self.servos[self.servo_index.index(i)].ratio)
@@ -383,8 +380,8 @@ class Servo_Control(QtWidgets.QDialog):
             list_bytes.append(format_hex(ratio >> 8))
             list_bytes.append(format_hex(ratio & 0xff))
             if self.real_time.isChecked():
-                list_bytes.append("00")
                 list_bytes.append("01")
+                list_bytes.append("00")
             else:
                 list_bytes.append(format_hex(use_time >> 8))
                 list_bytes.append(format_hex(use_time & 0xff))

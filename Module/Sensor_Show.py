@@ -13,7 +13,7 @@ class Sensor(QDialog):
         super(Sensor, self).__init__(parent)
         self.acc_boxes = []
         self.gyro_boxes = []
-        self.acc_max = 20
+        self.acc_max = 10
         self.tmps = deque(maxlen=20)
         self.SetupUI()
 
@@ -70,6 +70,7 @@ class Sensor(QDialog):
         # self.plot_temp.getAxis('left').setStyle(showValues=False)
         self.plot_temp.setMouseEnabled(x=False, y=False)
         self.plot_temp.setMenuEnabled(False)
+        self.plot_temp.setYRange(10, 40)
         for box in self.acc_boxes:
             box.setXRange(-0.2, 0.2)
             box.setYRange(-12, 12)

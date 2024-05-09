@@ -314,7 +314,7 @@ class QMoveWidget(QWidget):
             painter.drawText(QPoint(20, 40), self.mStrRight)
         else:
             fm = QFontMetrics(font)
-            rText = 65
+            rText = 100
             nHeight = fm.height() - 4
             iTotalWidth = fm.width(self.mStrUp)
             painter.save()
@@ -368,7 +368,7 @@ class QMoveWidget(QWidget):
                 painter.rotate(90 * iTotalWidth / (rText * self.M_PI))
                 for i in range(len(self.mStrLeft)):
                     painter.rotate(-90 * nHeight / (rText * self.M_PI))
-                    painter.drawText(-rText - 10, nHeight / 2, self.mStrLeft[i])
+                    painter.drawText(-rText - 20, nHeight / 2, self.mStrLeft[i])
                     painter.rotate(-90 * nHeight / (rText * self.M_PI))
             painter.restore()
 

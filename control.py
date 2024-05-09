@@ -113,22 +113,27 @@ class CenterWidget(QFrame):
     def Socket_Recv(self):
         if self.socket.state() == 3:
             data = self.socket.readLine(1024).decode('utf-8')[:-1]
-            print(data)
             if data:
                 if data[0] == "&":
-                    value = data[1:]
-                    self.Sensor.Update(value)
+                    try:
+                        value = eval(data[1:])
+                    except Exception as e:
+                        return
+                    tmp, acc_x, acc_y, acc_z, g_x, g_z, g_y = value[:7]
+                    acc_x /= (16384 / 9.8)
+                    acc_y /= (16384 / 9.8)
+                    acc_z /= (16384 / 9.8)
+                    g_x /= 10
+                    g_y /= 10
+                    g_z /= 10
+                    # if isinstance(data[1], tuple) and len(data[1]) == 3:
+                    #     # self.num += 1
+                    #     self.Show.A, self.Show.k, _ = data[1]
+                    #     self.Wave.A, self.Wave.k, _ = data[1]
+                    #     self.Socket.A, self.Socket.k, self.Socket.c = data[1]
+                    self.Sensor.Update(list(map(lambda x: round(x, 2), (tmp, acc_x, acc_y, acc_z, g_x, g_y, g_z))))
                 else:
                     self.Servo_Control.Recv.append('{}:{}'.format(datetime.now().strftime("%m-%d %H:%M:%S"), data))
-                try:
-                    data = eval(data)
-                except Exception as e:
-                    return
-                if isinstance(data[1], tuple) and len(data[1]) == 3:
-                    # self.num += 1
-                    self.Show.A, self.Show.k, _ = data[1]
-                    self.Wave.A, self.Wave.k, _ = data[1]
-                    self.Socket.A, self.Socket.k, self.Socket.c = data[1]
 
 
 def main():
