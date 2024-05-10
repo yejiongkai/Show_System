@@ -7,7 +7,14 @@ import numpy as np
 import sys
 import matplotlib
 
-matplotlib.use('Qt5Agg')
+# matplotlib.use('Qt5Agg')
+
+
+LB = 0.45                   # 鱼体长，m为单位
+LT = 0.20                   # 鱼尾长，m为单位
+steer_num = 2               # 舵机数/关节数
+lamb = 1.5 * LB             # 鱼体波波长，大于等于鱼体长为佳
+k = 2 * np.pi / lamb        # 鱼体波波数
 
 
 # ============= 鱼体波函数 =============
@@ -45,9 +52,10 @@ def angle_calculation(x, y, angle_0):
 
 
 class Wave(QtWidgets.QDialog):
-    def __init__(self, mode, c1_amp, T, parent=None):
+    def __init__(self, mode="stop", c1_amp=1.7, T=3, parent=None):
         # 父类初始化方法
         super(Wave, self).__init__(parent)
+
         self.Close = False
         self.c1 = 0.23            # 鱼体波拟合曲线一次项系数，固定
         self.c2 = 0.2             # 鱼体波拟合曲线二次项系数，固定
@@ -69,8 +77,9 @@ class Wave(QtWidgets.QDialog):
             self.T = T
         # 几个QWidgets
         self.figure = Figure()
-        self.ax = self.figure.add_axes([0.1, 0.1, 0.8, 0.8])
+        self.ax = self.figure.add_axes([0, 0, 1, 1])
         self.canvas = FigureCanvas(self.figure)
+        self.figure.set_alpha(1)
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.canvas)
         self.setLayout(layout)
@@ -102,8 +111,8 @@ class Wave(QtWidgets.QDialog):
                 else:
                     c1_l, c1_r = 0, 0
                     self.symbol = 1
-                y1 = wave_function(self.x, t, c1_r, self.c2, self.T, 1) + 0.07
-                y2 = wave_function(self.x, t, c1_l, self.c2, self.T, self.symbol) - 0.07
+                y1 = (wave_function(self.x, t, c1_r, self.c2, self.T, 1) if c1_r != 0 else np.zeros_like(self.x)) + 0.07
+                y2 = (wave_function(self.x, t, c1_l, self.c2, self.T, self.symbol) if c1_l != 0 else np.zeros_like(self.x)) - 0.07
                 # 计算角度
                 self.r_delta_angle, self.r_angle_0 = angle_calculation(self.x, y1, self.r_angle_0)
                 self.l_delta_angle, self.l_angle_0 = angle_calculation(self.x, y2, self.l_angle_0)
@@ -111,7 +120,7 @@ class Wave(QtWidgets.QDialog):
                 self.ax.plot(self.x, y1)
                 self.ax.plot(self.x, y2)
                 self.ax.set_ylim(-LB, LB)
-                self.ax.set_xlim(0, LB)
+                self.ax.set_xlim(0, LB/2)
                 self.ax.set_xticks([])
                 self.ax.set_yticks([])
                 self.ax.relim()
@@ -120,21 +129,16 @@ class Wave(QtWidgets.QDialog):
                 plt.pause(self.TC)
 
 
-mode_list = ['sync_front', 'async_front', 'left', 'right']
+mode_list = ['sync_front', 'async_front', 'left', 'right', 'stop']
 
 
 # 运行程序
 if __name__ == '__main__':
-    LB = 0.45                   # 鱼体长，m为单位
-    LT = 0.20                   # 鱼尾长，m为单位
-    steer_num = 2               # 舵机数/关节数
-    lamb = 1.5 * LB             # 鱼体波波长，大于等于鱼体长为佳
-    k = 2 * np.pi / lamb        # 鱼体波波数
     app = QtWidgets.QApplication(sys.argv)
     # 设定参数
     c1_amp = 1.5                # 调整转弯半径，0.7-1.5
     T = 3                       # 调整前进速度，>1.8
-    mode = mode_list[0]
+    mode = mode_list[3]
     main_window = Wave(mode, c1_amp, T)
     main_window.show()
     app.exec()

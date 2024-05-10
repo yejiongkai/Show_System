@@ -6,12 +6,13 @@ import random
 import numpy as np
 import matplotlib
 import pickle
-matplotlib.use('Qt5Agg')
+# matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
 from PyQt5.QtCore import QThread
 from PyQt5 import QtWidgets
 from Module.streamDetectionPlot import streamDetectionPlot
 
+plt.style.use('seaborn')
 
 class Show(QtWidgets.QDialog):
     def __init__(self, parent=None):

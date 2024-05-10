@@ -6,7 +6,7 @@ from Module.Route import Drawer
 from Module.Servo_Control import Servo_Control
 from Module.QMoveWidget import QMoveWidget
 from Module.VideoWidget import VideoWidget
-from Module.QWave import Wave
+from Module.Wave import Wave
 from Module.QShow import Show
 from Module.Sensor_Show import Sensor
 import os
@@ -61,9 +61,6 @@ class CenterWidget(QFrame):
         self.Wave = Wave(self)
 
         self.Sensor = Sensor(self)
-
-        values = [30, 5, 0, -10, 30, 40, -60]
-        self.Sensor.Update(values)
 
         self.Show = Show(self)
         self.Show.setContextMenuPolicy(3)
