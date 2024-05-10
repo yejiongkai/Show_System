@@ -62,6 +62,9 @@ class CenterWidget(QFrame):
 
         self.Sensor = Sensor(self)
 
+        values = [30, 5, 0, -10, 30, 40, -60]
+        self.Sensor.Update(values)
+
         self.Show = Show(self)
         self.Show.setContextMenuPolicy(3)
         self.Show.customContextMenuRequested[QPoint].connect(lambda: self.showContextMenu(self.Show))

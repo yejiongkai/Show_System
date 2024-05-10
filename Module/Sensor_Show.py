@@ -18,20 +18,23 @@ class Sensor(QDialog):
         self.SetupUI()
 
     def SetupUI(self):
+        pg.setConfigOption('background', '#00000000')  # 设置背景色为黑色
+        pg.setConfigOption('foreground', 'k')  # 设置前景色为白色
+        pg.setConfigOptions(antialias=True)  # 开启抗锯齿效果
         # self.setStyleSheet('QWidget {background: palette(window);font-family: "Segoe UI";font-size: 18px;}')
         box_width = 0.1
 
         self.graph = GraphicsLayoutWidget(self)
 
         self.bottomAxis_list = [pg.AxisItem(orientation='bottom') for i in range(7)]
-        axis_style = {'color': '#FFC107', 'font-size': '12pt', 'showValues': 'false'}
+        axis_style = {'color': 'black', 'font-size': '12pt', 'showValues': 'false'}
         self.plot_temp = self.graph.addPlot(0, 0, 1, 6, axisItems={'bottom': self.bottomAxis_list[0]})
         self.plot_temp.setLabel('bottom', '温度', **axis_style)
-        self.curve_temp = self.plot_temp.plot(pen=pg.mkPen(color='gray', width=1))
+        self.curve_temp = self.plot_temp.plot(pen=pg.mkPen(color='#0080aa', width=1))
 
-        self.box_acc_x = pg.BarGraphItem(x=[0], height=[0], width=box_width, brush='r')
-        self.box_acc_y = pg.BarGraphItem(x=[0], height=[0], width=box_width, brush='r')
-        self.box_acc_z = pg.BarGraphItem(x=[0], height=[0], width=box_width, brush='r')
+        self.box_acc_x = pg.BarGraphItem(x=[0], height=[0], width=box_width, brush='g')
+        self.box_acc_y = pg.BarGraphItem(x=[0], height=[0], width=box_width, brush='g')
+        self.box_acc_z = pg.BarGraphItem(x=[0], height=[0], width=box_width, brush='g')
         self.box_gyro_x = pg.BarGraphItem(x=[0], height=[0], width=box_width, brush='r')
         self.box_gyro_y = pg.BarGraphItem(x=[0], height=[0], width=box_width, brush='r')
         self.box_gyro_z = pg.BarGraphItem(x=[0], height=[0], width=box_width, brush='r')
