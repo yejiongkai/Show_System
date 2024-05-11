@@ -8,6 +8,11 @@ from PyQt5.Qt import Qt
 import math
 import time
 
+
+def format_hex(n):
+    return "".join(f"{n:02x}")
+
+
 class QMoveWidget(QWidget):
     Order = pyqtSignal(str)
 
@@ -36,7 +41,7 @@ class QMoveWidget(QWidget):
         self.QUADRANT_DOWN = 3
         self.QUADRANT_RIGHT = 4
         self.M_PI = 3.14159265358979323846
-        self.cur_style = 0
+        self.cur_style = 0    # 0: 对称   1：同步
         self.send_num = 0
         self.initButton()
         self.setWidgetStyle(self.cur_style)
@@ -214,12 +219,45 @@ class QMoveWidget(QWidget):
         self.mStrRight = "→"
 
     def Send(self):
-        if self.QUADRANT_RIGHT in self.mCurWorkRegion:
-            self.Order.emit(str((1 << 1, (self.cur_style, self.Degree_y, -self.Degree_x))))
-        elif self.QUADRANT_LEFT in self.mCurWorkRegion:
-            self.Order.emit(str((1 << 1, (self.cur_style, self.Degree_y, self.Degree_x))))
+        """
+            mode			1byte      2: 鱼体波
+            synmode		    1byte      0： 同步    1：对称
+            montionmode	    1byte      0： 前进    1：左转    2：右转    其他：停止复位
+            T				1byte	   T>1.8
+            c1_amp			1byte	   1<c1_amp<1.5
+            flag	  1*9 = 18byte
+            angle     2*9 = 18byte
+            time	  2*9 = 18byte
+            end		 0d0c = 2byte
+        """
+        T = max(255 - int(math.sqrt(self.Degree_y ** 2 + self.Degree_x ** 2) / 12.8 * 255), 0)
+        if self.Degree_y == 0:
+            c1_amp = 255
+        elif self.Degree_x == 0:
+            c1_amp = 0
         else:
-            self.Order.emit(str((1 << 1, (self.cur_style, self.Degree_y, 0))))
+            c1_amp = int(self.Degree_x**2 / (self.Degree_y ** 2 + self.Degree_x ** 2) * 255)
+
+        list_bytes = [format_hex(0x02), format_hex(0x00 if self.cur_style else 0x01)]
+
+        if self.Degree_y == 0 and self.Degree_x == 0:
+            list_bytes.append(format_hex(0x03))
+        elif self.Degree_x == 0:
+            list_bytes.append(format_hex(0x00))
+        elif self.QUADRANT_RIGHT in self.mCurWorkRegion:
+            list_bytes.append(format_hex(0x02))
+        elif self.QUADRANT_LEFT in self.mCurWorkRegion:
+            list_bytes.append(format_hex(0x01))
+
+
+
+        list_bytes.append(format_hex(T))
+        list_bytes.append(format_hex(c1_amp))
+        list_bytes += ["00"] * 45
+        list_bytes += [format_hex(0x0d), format_hex(0x0c)]
+
+        # print(" ".join(list_bytes))
+        self.Order.emit(str((1 << 1, " ".join(list_bytes))))
 
     def paintEvent(self, QPaintEvent):
         self.forward_label.setText("前向分量:{:>2}".format(int(self.Degree_y)))
@@ -283,12 +321,14 @@ class QMoveWidget(QWidget):
         if not self.mAxesVertical:
             leftmatrix = QTransform()
             if self.QUADRANT_UP in self.mCurWorkRegion:
-                painter.drawPixmap(int(-self.m_radius/2), int(-self.m_radius*3/4), self.m_radius, self.m_radius//2, self.mDegreePixmap_y)
+                painter.drawPixmap(int(-self.m_radius / 2), int(-self.m_radius * 3 / 4), self.m_radius,
+                                   self.m_radius // 2, self.mDegreePixmap_y)
                 leftmatrix.reset()
             if self.QUADRANT_LEFT in self.mCurWorkRegion:
                 leftmatrix.rotate(270)
                 mDegreePixmap = self.mDegreePixmap_x.transformed(leftmatrix, Qt.SmoothTransformation)
-                painter.drawPixmap(int(-self.m_radius*3/4), -self.m_radius//2, self.m_radius//2, self.m_radius, mDegreePixmap)
+                painter.drawPixmap(int(-self.m_radius * 3 / 4), -self.m_radius // 2, self.m_radius // 2, self.m_radius,
+                                   mDegreePixmap)
                 leftmatrix.reset()
             if self.QUADRANT_DOWN in self.mCurWorkRegion:
                 pass
@@ -299,7 +339,8 @@ class QMoveWidget(QWidget):
             if self.QUADRANT_RIGHT in self.mCurWorkRegion:
                 leftmatrix.rotate(90)
                 mDegreePixmap = self.mDegreePixmap_x.transformed(leftmatrix, Qt.SmoothTransformation)
-                painter.drawPixmap(self.m_radius//4, -self.m_radius//2, self.m_radius//2, self.m_radius, mDegreePixmap)
+                painter.drawPixmap(self.m_radius // 4, -self.m_radius // 2, self.m_radius // 2, self.m_radius,
+                                   mDegreePixmap)
                 leftmatrix.reset()
 
         font = QFont()
@@ -391,9 +432,9 @@ class QMoveWidget(QWidget):
         mousePressPoint = event.pos()
         translatePoint = mousePressPoint - QPoint(self.width() / 3, self.height() >> 1)
         angle = self.analysisAngle(translatePoint.x(), translatePoint.y())
-        length = math.sqrt(translatePoint.x()**2 + translatePoint.y()**2)
-        if 40 < angle < 130 and 30 < length < self.m_radius - 10:
-            self.setWidgetStyle(1-self.cur_style)
+        length = math.sqrt(translatePoint.x() ** 2 + translatePoint.y() ** 2)
+        if 40 < angle < 130 and self.m_radius*0.3 < length < self.m_radius*0.6:
+            self.setWidgetStyle(1 - self.cur_style)
             self.cur_style = 1 - self.cur_style
             if self.cur_style == 1:
                 self.mode_label.setText("模式:  同向")
@@ -430,8 +471,8 @@ class QMoveWidget(QWidget):
             y = -point.y()
             if y >= self.m_arcLength:
                 y = self.m_arcLength
-            elif y <= -self.m_arcLength:
-                y = -self.m_arcLength
+            elif y <= 0:
+                y = 0
             if x >= self.m_arcLength:
                 x = self.m_arcLength
             elif x <= -self.m_arcLength:
@@ -450,9 +491,9 @@ class QMoveWidget(QWidget):
                     x = -abs(_x)
             self.mCenterRound = QPoint(x, -y)
             angle = self.analysisAngle(x, y)
-            if 90 <= angle <= 180:
+            if 90 < angle <= 180:
                 self.mCurWorkRegion = [self.QUADRANT_UP, self.QUADRANT_LEFT]
-            elif 0 < angle <= 90:
+            elif 0 < angle < 90:
                 self.mCurWorkRegion = [self.QUADRANT_UP, self.QUADRANT_RIGHT]
             elif 180 < angle <= 270:
                 self.mCurWorkRegion = [self.QUADRANT_DOWN, self.QUADRANT_LEFT]
@@ -510,7 +551,7 @@ class QMoveWidget(QWidget):
         return ping // (10 / 632 * self.width()) if ping < (150 / 632 * self.width()) else 15
 
     def getSignalPixmap(self, color, linenum):
-        pixmap = QPixmap(self.m_radius, self.m_radius/2)
+        pixmap = QPixmap(self.m_radius, self.m_radius / 2)
         pixmap.fill(QColor(255, 255, 255, 0))
 
         painter = QPainter(pixmap)
@@ -520,7 +561,7 @@ class QMoveWidget(QWidget):
         xpos = 0
         x_width, y_width = self.m_radius / 35, self.m_radius / 35
         while i <= linenum:
-            painter.drawArc(self.m_radius/2 - i * x_width, self.m_radius/2 - i * y_width,
+            painter.drawArc(self.m_radius / 2 - i * x_width, self.m_radius / 2 - i * y_width,
                             i * x_width * 2, i * y_width * 2, 53 * 16, 37 * 2 * 16)
             i += 1
             xpos += 1

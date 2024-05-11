@@ -10,6 +10,7 @@ from Module.Wave import Wave
 from Module.QShow import Show
 from Module.Sensor_Show import Sensor
 import os
+import time
 from datetime import datetime
 
 root = os.path.curdir
@@ -109,6 +110,7 @@ class CenterWidget(QFrame):
     def Socket_Send(self, value: str):
         if self.socket and self.socket.state() == 3:
             self.socket.write(value.encode('utf-8'))
+            time.sleep(0.01)
 
     def Socket_Recv(self):
         if self.socket.state() == 3:

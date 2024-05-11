@@ -293,7 +293,6 @@ class Servo_Control(QtWidgets.QDialog):
         QtWidgets.QMessageBox.information(self, '提示', '服务器断开')
 
     def Send(self):
-        print(len(" ".join(self.get_SendMessageFormat())))
         self.Socket_Send.emit(str((1 << 0, " ".join(self.get_SendMessageFormat()))))
 
     def Save(self):
