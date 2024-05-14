@@ -31,7 +31,9 @@ k = 2 * np.pi / lamb        # 鱼体波波数
 # 双侧摆动，用于双尾同步动作
 def wave_function(x, t, c1, c2, T, sym=1):
     ome = 2 * np.pi / T
-    yb = sym * (c1 * x + c2 * np.power(x, 2)) * np.sin(k * x + ome * t)
+    # yb = sym * (c1 * x + c2 * np.power(x, 2)) * (np.exp(np.sin(k * x + ome * t))-1)
+    yb = sym * (c1 * x + c2 * np.power(x, 2)) * (np.sin(k * x + ome * t) + 2)
+    # yb = sym * (c1 * x + c2 * np.power(x, 2)) * np.sin(k * x + ome * t)
     return yb
 
 
@@ -56,7 +58,7 @@ class Wave(QtWidgets.QDialog):
         # 父类初始化方法
         super(Wave, self).__init__(parent)
         self.Close = False
-        self.c1 = 0.23            # 鱼体波拟合曲线一次项系数，固定
+        self.c1 = 0.33            # 鱼体波拟合曲线一次项系数，固定
         self.c2 = 0.2             # 鱼体波拟合曲线二次项系数，固定
         self.mode = mode
         self.TC = 0.1             # 控制周期，s为单位
