@@ -75,7 +75,7 @@ class CenterWidget(QFrame):
         self.Drawer = Drawer(self)
         self.Drawer.Order.connect(self.Socket_Send)
 
-        self.Move = QMoveWidget(self.Servo_Control, self)
+        self.Move = QMoveWidget(self.Wave, self)
         self.Move.Order.connect(self.Socket_Send)
 
         self.VideoModule = VideoWidget(self)

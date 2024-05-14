@@ -19,6 +19,10 @@ class QMoveWidget(QWidget):
     def __init__(self, servo_control=None, parent=None):
         super(QMoveWidget, self).__init__(parent)
         self.servo_control = servo_control
+
+    def __init__(self, wave=None, parent=None):
+        super(QMoveWidget, self).__init__(parent)
+        self.wave = wave
         self.mDegreePixmap_y = 0
         self.mDegreePixmap_x = 0
         self.Degree_y, self.Degree_x = 0, 0
@@ -239,10 +243,7 @@ class QMoveWidget(QWidget):
         else:
             c1_amp = int(self.Degree_x**2 / (self.Degree_y ** 2 + self.Degree_x ** 2) * 255)
 
-        if self.servo_control.is_rotate:
-            list_bytes = [format_hex(0x03), format_hex(0x00 if self.cur_style else 0x01)]
-        else:
-            list_bytes = [format_hex(0x02), format_hex(0x00 if self.cur_style else 0x01)]
+        list_bytes = [format_hex(0x02), format_hex(0x00 if self.cur_style else 0x01)]
 
         if self.Degree_y == 0 and self.Degree_x == 0:
             list_bytes.append(format_hex(0x03))
@@ -260,6 +261,18 @@ class QMoveWidget(QWidget):
 
         print(" ".join(list_bytes))
         self.Order.emit(str((1 << 1, " ".join(list_bytes))))
+        self.wave.c1_amp = c1_amp / 512 + 1
+        self.wave.T = T / 256 + 1.8
+        if list_bytes[1] == "00" and list_bytes[2] == "00":
+            self.wave.mode = "sync_front"
+        elif list_bytes[1] == "01" and list_bytes[2] == "00":
+            self.wave.mode = "async_front"
+        elif list_bytes[2] == "01":
+            self.wave.mode = "left"
+        elif list_bytes[2] == "02":
+            self.wave.mode = "right"
+        else:
+            self.wave.mode = "stop"
 
     def paintEvent(self, QPaintEvent):
         self.forward_label.setText("前向分量:{:>2}".format(int(self.Degree_y)))

@@ -29,9 +29,11 @@ k = 2 * np.pi / lamb        # 鱼体波波数
 # 注：y峰值即尾鳍摆动轴波幅为0.075~0.1倍体长LB
 
 # 双侧摆动，用于双尾同步动作
-def wave_function(x, t, c1, c2, T, sym=1):
+def wave_function(x, t, c1, c2, T, p, sym=1):
     ome = 2 * np.pi / T
-    yb = sym * (c1 * x + c2 * np.power(x, 2)) * np.sin(k * x + ome * t)
+    # yb = sym * (c1 * x + c2 * np.power(x, 2)) * (np.exp(np.sin(k * x + ome * t))-1)
+    yb = sym * (c1 * x + c2 * np.power(x, 2)) * (np.sin(k * x + ome * t) + p)
+    # yb = sym * (c1 * x + c2 * np.power(x, 2)) * np.sin(k * x + ome * t)
     return yb
 
 
@@ -55,12 +57,12 @@ class Wave(QtWidgets.QDialog):
     def __init__(self, mode="stop", c1_amp=1.7, T=3, parent=None):
         # 父类初始化方法
         super(Wave, self).__init__(parent)
-
         self.Close = False
         self.c1 = 0.23            # 鱼体波拟合曲线一次项系数，固定
         self.c2 = 0.2             # 鱼体波拟合曲线二次项系数，固定
         self.mode = mode
         self.TC = 0.1             # 控制周期，s为单位
+        self.p_l, self.p_r = 0, 0
         # c1_amp
         if 1.5 >= c1_amp >= 0.7:
             self.c1_amp = c1_amp
@@ -86,7 +88,7 @@ class Wave(QtWidgets.QDialog):
         self.thread = QtCore.QThread(self)
         self.thread.run = self.Plot
         self.thread.start()
-        #
+
         self.x = np.array([0., 0.13, LT])
         self.l_angle_0 = np.array((self.x.shape[0]-1, ))
         self.l_delta_angle = np.array((self.x.shape[0]-1, ))
@@ -95,30 +97,35 @@ class Wave(QtWidgets.QDialog):
 
     def Plot(self):
         while not self.Close:
+            if self.mode == 'sync_front':  # 同步
+                c1_r, c1_l = self.c1, self.c1
+                self.p_l, self.p_r = 0, 0
+                self.symbol = 1
+            elif self.mode == 'async_front':  # 对称
+                c1_r, c1_l = self.c1, self.c1
+                self.p_l, self.p_r = 1, 1
+                self.symbol = -1
+            elif self.mode == 'left':
+                c1_r, c1_l = self.c1 / self.c1_amp, self.c1 * self.c1_amp
+                self.p_l, self.p_r = -1, -1
+                self.symbol = 1
+            elif self.mode == 'right':
+                c1_r, c1_l = self.c1 * self.c1_amp, self.c1 / self.c1_amp
+                self.p_l, self.p_r = 1, 1
+                self.symbol = 1
+            else:
+                c1_l, c1_r = 0, 0
+                self.p_l, self.p_r = 0, 0
+                self.symbol = 1
             for t in np.linspace(start=0, stop=self.T, num=int(self.T/self.TC)):
-                if self.mode == 'sync_front':       # 同步
-                    c1_r, c1_l = self.c1, self.c1
-                    self.symbol = 1
-                elif self.mode == 'async_front':    # 对称
-                    c1_r, c1_l = self.c1, self.c1
-                    self.symbol = -1
-                elif self.mode == 'left':
-                    c1_r, c1_l = self.c1 * self.c1_amp, self.c1 / self.c1_amp
-                    self.symbol = 1
-                elif self.mode == 'right':
-                    c1_r, c1_l = self.c1 / self.c1_amp, self.c1 * self.c1_amp
-                    self.symbol = 1
-                else:
-                    c1_l, c1_r = 0, 0
-                    self.symbol = 1
-                y1 = (wave_function(self.x, t, c1_r, self.c2, self.T, 1) if c1_r != 0 else np.zeros_like(self.x)) + 0.07
-                y2 = (wave_function(self.x, t, c1_l, self.c2, self.T, self.symbol) if c1_l != 0 else np.zeros_like(self.x)) - 0.07
+                y1 = (wave_function(self.x, t, c1_r, self.c2, self.T, self.p_l, 1) if c1_r != 0 else np.zeros_like(self.x)) + 0.07
+                y2 = (wave_function(self.x, t, c1_l, self.c2, self.T, self.p_r, self.symbol) if c1_l != 0 else np.zeros_like(self.x)) - 0.07
                 # 计算角度
                 self.r_delta_angle, self.r_angle_0 = angle_calculation(self.x, y1, self.r_angle_0)
                 self.l_delta_angle, self.l_angle_0 = angle_calculation(self.x, y2, self.l_angle_0)
                 self.ax.clear()
-                self.ax.plot(self.x, y1)
-                self.ax.plot(self.x, y2)
+                self.ax.plot(self.x, y1, color='#FF4500')
+                self.ax.plot(self.x, y2, color='#FF4500')
                 self.ax.set_ylim(-LB, LB)
                 self.ax.set_xlim(0, LB/2)
                 self.ax.set_xticks([])

@@ -229,7 +229,7 @@ class Servo_Control(QtWidgets.QDialog):
         self.servo_reset.clicked.connect(self.Servo_Reset)
 
         self.servo_rotate = QtWidgets.QCheckBox(self)
-        self.servo_rotate.setText("旋转")
+        self.servo_rotate.setText("环行")
         self.servo_rotate.setChecked(False)
         self.servo_rotate.clicked.connect(self.Servo_Rotate)
 
@@ -256,8 +256,8 @@ class Servo_Control(QtWidgets.QDialog):
         h2.addWidget(self.chooseAll)
         h2.addWidget(self.chooseShoulder)
         h2.addWidget(self.chooseWaist)
-        h2.addWidget(self.gesture_control)
         h2.addWidget(self.servo_rotate)
+        h2.addWidget(self.gesture_control)
         h2.addWidget(self.send_pushbutton)
         h2.addWidget(self.load_pb)
         h2.addWidget(self.save_pb)
