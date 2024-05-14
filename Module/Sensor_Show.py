@@ -101,23 +101,23 @@ class Sensor(QDialog):
         show_acc_x = 10 * acc_x / self.acc_max
         show_acc_y = 10 * acc_y / self.acc_max
         show_acc_z = 10 * acc_z / self.acc_max
-        show_gyro_x = 10 * gyro_x / 90
-        show_gyro_y = 10 * gyro_y / 90
-        show_gyro_z = 10 * gyro_z / 90
+        show_gyro_x = 10 * gyro_x / 180
+        show_gyro_y = 10 * gyro_y / 180
+        show_gyro_z = 10 * gyro_z / 180
         self.tmps.append(tmp)
         self.box_acc_x.setOpts(height=show_acc_x)
 
-        self.acc_x_label.setText(str(acc_x))
+        self.acc_x_label.setText(f"{acc_x:.2f}")
         self.box_acc_y.setOpts(height=show_acc_y)
-        self.acc_y_label.setText(str(acc_y))
+        self.acc_y_label.setText(f"{acc_y:.2f}")
         self.box_acc_z.setOpts(height=show_acc_z)
-        self.acc_z_label.setText(str(acc_z))
+        self.acc_z_label.setText(f"{acc_z:.2f}")
         self.box_gyro_x.setOpts(height=show_gyro_x)
-        self.gyro_x_label.setText(str(gyro_x))
+        self.gyro_x_label.setText(f"{gyro_x:.2f}")
         self.box_gyro_y.setOpts(height=show_gyro_y)
-        self.gyro_y_label.setText(str(gyro_y))
+        self.gyro_y_label.setText(f"{gyro_y:.2f}")
         self.box_gyro_z.setOpts(height=show_gyro_z)
-        self.gyro_z_label.setText(str(gyro_z))
+        self.gyro_z_label.setText(f"{gyro_z:.2f}")
         self.curve_temp.setData(self.tmps)
 
 

@@ -26,7 +26,7 @@ class Servo(QtWidgets.QWidget):
 
         self.name = name
         self.num = num
-        self.ratio = 90
+        self.ratio = ratio_range // 2
         self.use_time = 1000  # ms
         self.ratio_range = ratio_range
         self.setupUI()
@@ -35,7 +35,7 @@ class Servo(QtWidgets.QWidget):
         num_label = QtWidgets.QLabel("舵机编号:"+self.name, self)
         ratio_label = QtWidgets.QLabel("角度:", self)
         ratio_label.setFixedSize(50, 20)
-        self.ratio_line = QtWidgets.QLineEdit("90", self)
+        self.ratio_line = QtWidgets.QLineEdit(str(self.ratio), self)
         self.ratio_line.setFixedSize(40, 20)
         self.ratio_line.textChanged.connect(self.ratio_changed)
         self.ratio_slider = QtWidgets.QSlider(Qt.Horizontal, self)
@@ -131,6 +131,7 @@ class Servo_Control(QtWidgets.QDialog):
     def __init__(self, parent=None):
         # 父类初始化方法
         super(Servo_Control, self).__init__(parent)
+        self.is_rotate = 0
         self.servo_map = {0: "腰部旋转", 1: "左脚底", 2: "右脚底", 3: "左肩关节",
                           4: "右肩关节", 5: "左小腿", 6: "右小腿", 7: "左大腿", 8: "右大腿"}
         self.servo_index = [0, 7, 8, 3, 5, 6, 4, 1, 2]
@@ -224,6 +225,20 @@ class Servo_Control(QtWidgets.QDialog):
         self.gesture_control.setChecked(False)
         self.gesture_control.clicked.connect(self.Gesture_Control)
 
+        self.servo_reset = QtWidgets.QPushButton("舵机复位", self)
+        self.servo_reset.clicked.connect(self.Servo_Reset)
+
+        self.servo_rotate = QtWidgets.QCheckBox(self)
+        self.servo_rotate.setText("旋转")
+        self.servo_rotate.setChecked(False)
+        self.servo_rotate.clicked.connect(self.Servo_Rotate)
+
+        self.servo_user = []
+        for i in range(5):
+            button = QtWidgets.QPushButton("预设"+str(i), self)
+            button.clicked.connect(self.Servo_User)
+            self.servo_user.append(button)
+
         # 设置布局
         servo_layouts = [QtWidgets.QHBoxLayout(), QtWidgets.QHBoxLayout(), QtWidgets.QHBoxLayout()]
         for i in range(9):
@@ -242,19 +257,25 @@ class Servo_Control(QtWidgets.QDialog):
         h2.addWidget(self.chooseShoulder)
         h2.addWidget(self.chooseWaist)
         h2.addWidget(self.gesture_control)
+        h2.addWidget(self.servo_rotate)
         h2.addWidget(self.send_pushbutton)
         h2.addWidget(self.load_pb)
         h2.addWidget(self.save_pb)
-
-        h2.addWidget(self.reset32)
 
         h3 = QtWidgets.QHBoxLayout()
         h3.addWidget(self.Connect)
         h3.addWidget(self.combobox, 8)
 
+        h4 = QtWidgets.QHBoxLayout()
+        h4.addWidget(self.reset32)
+        h4.addWidget(self.servo_reset)
+        for i in range(5):
+            h4.addWidget(self.servo_user[i])
+
         layout.addWidget(self.Recv, 6)
         layout.addLayout(servo_v_layout, 6)
         layout.addLayout(h2, 1)
+        layout.addLayout(h4, 1)
         layout.addLayout(h3, 1)
         self.setLayout(layout)
         self.clearFocus()
@@ -301,19 +322,25 @@ class Servo_Control(QtWidgets.QDialog):
             with open(address, "wb+") as f:
                 pickle.dump(self.get_SendMessageFormat(), f)
 
-    def Load(self):
-        address, _ = QtWidgets.QFileDialog.getOpenFileName(self, "加载数据", ".")
+    def Load(self, path=None):
+        if path:
+            if os.path.exists(path):
+                address = path
+            else:
+                return
+        else:
+            address, _ = QtWidgets.QFileDialog.getOpenFileName(self, "加载数据", ".")
 
         if address:
             with open(address, "rb+") as f:
                 list_bytes = pickle.load(f)
 
                 for i in range(9):
-                    self.servos[self.servo_index.index(i)].enable.setChecked(True if (int(list_bytes[1 + i*5], 16) == 1) else False)
-                    self.servos[self.servo_index.index(i)].ratio_slider.setValue((int(list_bytes[2 + i*5], 16) << 8) +
-                                                         (int(list_bytes[3 + i*5], 16)))
-                    self.servos[self.servo_index.index(i)].use_time_slider.setValue((int(list_bytes[4 + i*5], 16) << 8) +
-                                                         (int(list_bytes[5 + i*5], 16)))
+                    self.servos[self.servo_index.index(i)].enable.setChecked(True if (int(list_bytes[5 + i*5], 16) == 1) else False)
+                    self.servos[self.servo_index.index(i)].ratio_slider.setValue((int(list_bytes[6 + i*5], 16) << 8) +
+                                                         (int(list_bytes[7 + i*5], 16)))
+                    self.servos[self.servo_index.index(i)].use_time_slider.setValue((int(list_bytes[8 + i*5], 16) << 8) +
+                                                         (int(list_bytes[9 + i*5], 16)))
             # self.signal_changed()
 
     def Reset_STM32(self):
@@ -385,8 +412,26 @@ class Servo_Control(QtWidgets.QDialog):
                 list_bytes.append(format_hex(use_time >> 8))
                 list_bytes.append(format_hex(use_time & 0xff))
         list_bytes += [format_hex(0x0d), format_hex(0x0c)]
-
         return list_bytes
+
+    def Servo_Reset(self):
+        self.Load("./Servo/reset")
+        self.Send()
+
+    def Servo_Rotate(self):
+        if self.servo_rotate.isChecked():
+            self.is_rotate = True
+            self.Load("./Servo/rotate_open")
+            self.Send()
+        else:
+            self.is_rotate = False
+            self.Load("./Servo/rotate_close")
+            self.Send()
+
+    def Servo_User(self):
+        index = self.servo_user.index(self.sender())
+        self.Load("./Servo/user"+str(index))
+        self.Send()
 
     def closeEvent(self, a0):
         self.live = False

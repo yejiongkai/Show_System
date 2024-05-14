@@ -16,8 +16,9 @@ def format_hex(n):
 class QMoveWidget(QWidget):
     Order = pyqtSignal(str)
 
-    def __init__(self, parent=None):
+    def __init__(self, servo_control=None, parent=None):
         super(QMoveWidget, self).__init__(parent)
+        self.servo_control = servo_control
         self.mDegreePixmap_y = 0
         self.mDegreePixmap_x = 0
         self.Degree_y, self.Degree_x = 0, 0
@@ -238,7 +239,10 @@ class QMoveWidget(QWidget):
         else:
             c1_amp = int(self.Degree_x**2 / (self.Degree_y ** 2 + self.Degree_x ** 2) * 255)
 
-        list_bytes = [format_hex(0x02), format_hex(0x00 if self.cur_style else 0x01)]
+        if self.servo_control.is_rotate:
+            list_bytes = [format_hex(0x03), format_hex(0x00 if self.cur_style else 0x01)]
+        else:
+            list_bytes = [format_hex(0x02), format_hex(0x00 if self.cur_style else 0x01)]
 
         if self.Degree_y == 0 and self.Degree_x == 0:
             list_bytes.append(format_hex(0x03))
@@ -249,14 +253,12 @@ class QMoveWidget(QWidget):
         elif self.QUADRANT_LEFT in self.mCurWorkRegion:
             list_bytes.append(format_hex(0x01))
 
-
-
         list_bytes.append(format_hex(T))
         list_bytes.append(format_hex(c1_amp))
         list_bytes += ["00"] * 45
         list_bytes += [format_hex(0x0d), format_hex(0x0c)]
 
-        # print(" ".join(list_bytes))
+        print(" ".join(list_bytes))
         self.Order.emit(str((1 << 1, " ".join(list_bytes))))
 
     def paintEvent(self, QPaintEvent):
@@ -433,7 +435,7 @@ class QMoveWidget(QWidget):
         translatePoint = mousePressPoint - QPoint(self.width() / 3, self.height() >> 1)
         angle = self.analysisAngle(translatePoint.x(), translatePoint.y())
         length = math.sqrt(translatePoint.x() ** 2 + translatePoint.y() ** 2)
-        if 40 < angle < 130 and self.m_radius*0.3 < length < self.m_radius*0.6:
+        if 40 < angle < 130 and self.m_radius*0.2 < length < self.m_radius*0.8:
             self.setWidgetStyle(1 - self.cur_style)
             self.cur_style = 1 - self.cur_style
             if self.cur_style == 1:

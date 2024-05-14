@@ -138,7 +138,7 @@ if __name__ == '__main__':
     # 设定参数
     c1_amp = 1.5                # 调整转弯半径，0.7-1.5
     T = 1.8                       # 调整前进速度，>1.8
-    mode = mode_list[3]
+    mode = mode_list[2]
     main_window = Wave(mode, c1_amp, T)
     main_window.show()
     app.exec()
