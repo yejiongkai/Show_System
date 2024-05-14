@@ -26,7 +26,6 @@ class CenterWidget(QFrame):
         self.setObjectName('Mermaid')
         self.setWindowTitle('Mermaid')
         self.socket = None
-
         self._setup_ui()
 
     def _setup_ui(self):
@@ -59,6 +58,11 @@ class CenterWidget(QFrame):
 
         list_str = ['网络连接', '运行控制', '规划路径', '轨迹仿真']
 
+        self.Servo_Control = Servo_Control()
+        self.Servo_Control.Socket_Connect.connect(self.Socket_Connect)
+        self.Servo_Control.Socket_Disconnect.connect(self.Socket_Disconnect)
+        self.Servo_Control.Socket_Send.connect(self.Socket_Send)
+
         self.Wave = Wave(self)
 
         self.Sensor = Sensor(self)
@@ -71,16 +75,11 @@ class CenterWidget(QFrame):
         self.Drawer = Drawer(self)
         self.Drawer.Order.connect(self.Socket_Send)
 
-        self.Move = QMoveWidget(self)
+        self.Move = QMoveWidget(self.Servo_Control, self.Wave, self)
         self.Move.Order.connect(self.Socket_Send)
 
         self.VideoModule = VideoWidget(self)
         self.VideoModule.Order.connect(self.Socket_Send)
-
-        self.Servo_Control = Servo_Control()
-        self.Servo_Control.Socket_Connect.connect(self.Socket_Connect)
-        self.Servo_Control.Socket_Disconnect.connect(self.Socket_Disconnect)
-        self.Servo_Control.Socket_Send.connect(self.Socket_Send)
 
         list_module = [self.Servo_Control, self.Move, self.Drawer, self.Show]
 

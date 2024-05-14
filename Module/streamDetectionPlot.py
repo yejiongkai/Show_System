@@ -5,11 +5,6 @@ from matplotlib.figure import Figure
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
 
-plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
-plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
-
-matplotlib.rc('font', family="MicroSoft YaHei")  # matplotlib默认字体对中文不支持，要重新修改字体
-
 
 class streamDetectionPlot(FigureCanvas):
     # Initial the figure parameters
@@ -58,9 +53,9 @@ class streamDetectionPlot(FigureCanvas):
         # self.loadingGraph.set_title("运动轨迹(东北天坐标系)")
 
         # set the x/y label of the first graph
-        self.loadingGraph.set_xlabel("正东")
-        self.loadingGraph.set_ylabel("正北")
-        self.loadingGraph.set_zlabel("天")
+        # self.loadingGraph.set_xlabel("正东")
+        # self.loadingGraph.set_ylabel("正北")
+        # self.loadingGraph.set_zlabel("天")
 
         self.cur_label = "x:{:.5f}\ny:{:.5f}\nz:{:.5f}\nv:{:.5f}".format(self.x[-1], self.y[-1], self.z[-1],
                                                                          np.linalg.norm(self.v[-1]))

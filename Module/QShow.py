@@ -13,6 +13,11 @@ from PyQt5 import QtWidgets
 from Module.streamDetectionPlot import streamDetectionPlot
 
 plt.style.use('seaborn')
+plt.rcParams['font.sans-serif'] = ['SimHei']  # 用来正常显示中文标签
+plt.rcParams['axes.unicode_minus'] = False  # 用来正常显示负号
+
+matplotlib.rc('font', family="MicroSoft YaHei")  # matplotlib默认字体对中文不支持，要重新修改字体
+
 
 class Show(QtWidgets.QDialog):
     def __init__(self, parent=None):
