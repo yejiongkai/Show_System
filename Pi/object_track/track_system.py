@@ -22,10 +22,10 @@ class Track_System(object):
     move_pred = np.array([0, 0])
     # -----fixed----- #
     score_size, hanning, window, anchor_num, anchors = [None for i in range(5)]
-    track_thresh = 0.05
+    track_thresh = 0.5
     detect_thresh = 0.9
 
-    miss_object_thresh = 200
+    miss_object_thresh = 5
     miss_object_num = 1
 
     move_pred_epoch = 20
@@ -36,8 +36,11 @@ class Track_System(object):
 
     detect_types = ["person", "dog"]
 
-    def __init__(self):
+    server = None
+
+    def __init__(self, server):
         super(Track_System, self).__init__()
+        self.server = server
         self.cfg_Init()
         self.ncnn_Init()
         self.parameter_Init()
@@ -173,13 +176,14 @@ class Track_System(object):
                 self.move_pred_num = 0
 
             self.miss_object_num = 0
-            return self.score, self.bbox
         else:
             if self.miss_object_num > self.miss_object_thresh:
                 if self.use_detect:
                     self.Search_Object(frame)
                 else:
-                    print("object have lose")
+                    print("-------Object loss---------")
+                    if self.server is not None:
+                        self.server.Message_Send("-------Object loss---------")
             else:
                 self.miss_object_num += 1
                 self.center_pos += self.move_pred
@@ -188,18 +192,23 @@ class Track_System(object):
                 self.bbox[0] = self.bbox[0] + self.move_pred[0]
                 self.bbox[1] = self.bbox[1] + self.move_pred[1]
 
-            return self.score, self.bbox
-
     def Search_Object(self, frame):
         print("-------Start search object--------")
+        if self.server is not None:
+            self.server.Message_Send("-------Start search object--------")
         objects = self.model_detect(frame)
         if objects:
             print("-------find search object--------")
+            if self.server is not None:
+                self.server.Message_Send("-------find search object--------")
             box_sizes = np.array([o.rect.w * o.rect.h for o in objects])
             max_size_id = np.argmax(box_sizes)
             self.Set_Template(frame, (objects[max_size_id].rect.x, objects[max_size_id].rect.y,
                                       objects[max_size_id].rect.w, objects[max_size_id].rect.h))
             self.miss_object_num = 0
+            return True
+        else:
+            return False
             # if self.model_detect.class_names[int(objects[max_size_id].label)] in self.detect_types:
 
     def generate_anchor(self):

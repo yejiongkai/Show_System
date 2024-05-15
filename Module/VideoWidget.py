@@ -50,6 +50,7 @@ class VideoWidget(QWidget):
             "box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2);"
             "}")
         self.Screen = QLabel(self)
+        self.Screen.setAlignment(Qt.AlignCenter)
         self.Screen.setFixedSize(320, 240)
         self.Screen.setStyleSheet('border-width: 6px;border-style: solid;\
                         border-color: rgb(0, 0, 0);background-color: rgb(255,255,255, 120);')
@@ -86,6 +87,7 @@ class VideoWidget(QWidget):
             self.Order.emit(str((1 << 8, False)))
         else:
             self.open_trans.setText("关闭图传")
+            self.Screen.setText("初始化进程中")
             self.is_trans = True
             self.Order.emit(str((1 << 8, True)))
             self.trans_thread.start()
