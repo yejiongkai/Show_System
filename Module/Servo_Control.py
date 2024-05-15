@@ -135,6 +135,7 @@ class Servo_Control(QtWidgets.QDialog):
         self.servo_map = {0: "腰部旋转", 1: "左脚底", 2: "右脚底", 3: "左肩关节",
                           4: "右肩关节", 5: "左小腿", 6: "右小腿", 7: "左大腿", 8: "右大腿"}
         self.servo_index = [0, 7, 8, 3, 5, 6, 4, 1, 2]
+        self.last_send_num = None
         self.font = QFont('New Roman', 13)
         self.setFont(self.font)
         self.Socket = QTcpSocket(self)
@@ -313,8 +314,10 @@ class Servo_Control(QtWidgets.QDialog):
         self.combobox.setEnabled(True)
         QtWidgets.QMessageBox.information(self, '提示', '服务器断开')
 
-    def Send(self):
-        self.Socket_Send.emit(str((1 << 0, " ".join(self.get_SendMessageFormat()))))
+    def Send(self, num):
+        if not (self.last_send_num == 4 and num == 3):
+            self.Socket_Send.emit(str((1 << 0, " ".join(self.get_SendMessageFormat()))))
+        self.last_send_num = num
 
     def Save(self):
         address, _ = QtWidgets.QFileDialog.getSaveFileName(self, "保存数据", ".")
@@ -393,8 +396,8 @@ class Servo_Control(QtWidgets.QDialog):
                     self.servos[self.servo_index.index(num)].enable.isChecked()
                 )
 
-        if self.real_time.isChecked():
-            self.Send()
+            if self.real_time.isChecked():
+                self.Send(num)
 
     def get_SendMessageFormat(self):
         list_bytes = [format_hex(0x01), "00", "00", "00", "00"]
@@ -416,22 +419,22 @@ class Servo_Control(QtWidgets.QDialog):
 
     def Servo_Reset(self):
         self.Load("./Servo/reset")
-        self.Send()
+        self.Send(None)
 
     def Servo_Rotate(self):
         if self.servo_rotate.isChecked():
             self.is_rotate = True
             self.Load("./Servo/rotate_open")
-            self.Send()
+            self.Send(None)
         else:
             self.is_rotate = False
             self.Load("./Servo/rotate_close")
-            self.Send()
+            self.Send(None)
 
     def Servo_User(self):
         index = self.servo_user.index(self.sender())
         self.Load("./Servo/user"+str(index))
-        self.Send()
+        self.Send(None)
 
     def closeEvent(self, a0):
         self.live = False
