@@ -419,22 +419,22 @@ class Servo_Control(QtWidgets.QDialog):
 
     def Servo_Reset(self):
         self.Load("./Servo/reset")
-        self.Send(None)
+        # self.Send(None)
 
     def Servo_Rotate(self):
         if self.servo_rotate.isChecked():
             self.is_rotate = True
             self.Load("./Servo/rotate_open")
-            self.Send(None)
+            # self.Send(None)
         else:
             self.is_rotate = False
             self.Load("./Servo/rotate_close")
-            self.Send(None)
+            # self.Send(None)
 
     def Servo_User(self):
         index = self.servo_user.index(self.sender())
         self.Load("./Servo/user"+str(index))
-        self.Send(None)
+        # self.Send(None)
 
     def closeEvent(self, a0):
         self.live = False

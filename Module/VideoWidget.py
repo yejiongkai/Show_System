@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QApplication
+from PyQt5.QtWidgets import QWidget, QLabel, QHBoxLayout, QVBoxLayout, QPushButton, QApplication, QMessageBox
 from PyQt5.QtCore import pyqtSignal, Qt, QThread, QSize
 from PyQt5.QtGui import QImage, QPixmap
 import sys
@@ -115,11 +115,11 @@ class VideoWidget(QWidget):
 
     def Detect(self):
         if self.is_detect:
-            self.open_detect.setText("启动跟踪")
+            self.open_detect.setText("启动检测")
             self.is_detect = False
             self.Order.emit(str((1 << 3, False)))
         else:
-            self.open_detect.setText("关闭跟踪")
+            self.open_detect.setText("关闭检测")
             self.is_detect = True
             self.Order.emit(str((1 << 3, True)))
 
@@ -129,7 +129,8 @@ class VideoWidget(QWidget):
     def Get_Video(self):
         self.video = cv2.VideoCapture('udpsrc port=5000 caps="application/x-rtp, media=video, clock-rate=90000, '
                                       'encoding-name=H264, payload=96" !'
-                                      'rtph264depay ! decodebin ! videoconvert ! appsink sync=true', cv2.CAP_GSTREAMER)
+                                      'rtph264depay ! decodebin ! videoconvert ! appsink sync=false', cv2.CAP_GSTREAMER)
+
         while self.is_trans:
             ret, self.frame = self.video.read()
             if self.frame is not None:
